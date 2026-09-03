@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IoSparkles } from 'react-icons/io5';
+import { IoSparkles, IoChevronDown, IoChevronForward } from 'react-icons/io5';
 
 const galleryImages = [
   {
@@ -62,7 +62,7 @@ const galleryImages = [
 ];
 
 export default function AtelierGallery() {
-  // Default expanded image is the second card
+  // Active expanded image index (default second card)
   const [activeImage, setActiveImage] = useState(1);
 
   return (
@@ -80,19 +80,114 @@ export default function AtelierGallery() {
             </h2>
           </div>
           <p className="text-xs sm:text-sm text-[#77736D] max-w-sm">
-            Hover or tap across our curated spatial projects to reveal the architectural silhouettes.
+            <span className="sm:hidden">Touch any image below to smoothly open and explore its space.</span>
+            <span className="hidden sm:inline">Hover or tap across our curated spatial projects to reveal the architectural silhouettes.</span>
           </p>
         </div>
 
-        {/* HoverExpand Accordion Gallery Strip */}
+        {/* 1. Mobile Vertical Accordion (< sm): Stacked cards opening vertically on touch */}
+        <div className="flex sm:hidden flex-col gap-2.5 w-full">
+          {galleryImages.map((image, index) => {
+            const isExpanded = activeImage === index;
+
+            return (
+              <motion.div
+                key={index}
+                layout
+                className="relative w-full cursor-pointer overflow-hidden rounded-[24px] bg-[#ECE6DC] border border-[#E5DED4] shadow-xs active:scale-[0.99] select-none"
+                initial={false}
+                animate={{
+                  height: isExpanded ? '19rem' : '4.5rem',
+                }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 320,
+                  damping: 30,
+                }}
+                onClick={() => setActiveImage(isExpanded ? null : index)}
+              >
+                {/* Background Image */}
+                <motion.img
+                  src={image.src}
+                  alt={image.alt}
+                  loading="lazy"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  animate={{
+                    scale: isExpanded ? 1.05 : 1,
+                  }}
+                  transition={{ duration: 0.5 }}
+                />
+
+                {/* Dark Gradient Overlay */}
+                <div
+                  className={`absolute inset-0 z-10 transition-colors duration-300 ${
+                    isExpanded
+                      ? 'bg-gradient-to-t from-black/85 via-black/35 to-black/20'
+                      : 'bg-black/50 hover:bg-black/40'
+                  }`}
+                />
+
+                {/* Content Container */}
+                <div className="relative z-20 h-full p-4 flex flex-col justify-between text-white">
+                  {/* Top Bar / Header */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <span className="px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-md text-[10px] font-mono tracking-widest uppercase border border-white/20">
+                        {image.code}
+                      </span>
+                      <span className="text-[10px] tracking-wider font-bold uppercase text-white/90">
+                        {image.category}
+                      </span>
+                    </div>
+
+                    <div className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xs">
+                      {isExpanded ? <IoChevronDown /> : <IoChevronForward />}
+                    </div>
+                  </div>
+
+                  {/* Bottom Expanded Narrative */}
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.25 }}
+                        className="pt-2"
+                      >
+                        <h3 className="text-lg font-extrabold text-white tracking-tight mb-1">
+                          {image.title}
+                        </h3>
+                        <p className="text-xs text-white/85 leading-relaxed">
+                          {image.desc}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Title Preview in Collapsed State */}
+                  {!isExpanded && (
+                    <div className="truncate">
+                      <h4 className="text-xs font-bold text-white/95 truncate">
+                        {image.title}
+                      </h4>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* 2. Desktop & Tablet Horizontal Accordion (sm+): Expands horizontally on hover/click */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
-          className="w-full flex items-center justify-center overflow-x-auto no-scrollbar py-2 -mx-4 px-4 sm:mx-0 sm:px-0"
+          className="hidden sm:flex w-full items-center justify-center py-2"
         >
-          <div className="flex w-full items-center justify-start sm:justify-center gap-2 md:gap-2.5 min-w-max sm:min-w-0">
+          <div className="flex w-full items-center justify-center gap-2 md:gap-2.5">
             {galleryImages.map((image, index) => {
               const isExpanded = activeImage === index;
 
@@ -100,7 +195,7 @@ export default function AtelierGallery() {
                 <motion.div
                   key={index}
                   layout
-                  className="relative cursor-pointer overflow-hidden rounded-[24px] sm:rounded-[32px] bg-[#ECE6DC] border border-[#E5DED4] flex-shrink-0 shadow-sm hover:shadow-xl select-none"
+                  className="relative cursor-pointer overflow-hidden rounded-[28px] sm:rounded-[32px] bg-[#ECE6DC] border border-[#E5DED4] flex-shrink-0 shadow-sm hover:shadow-xl select-none"
                   initial={false}
                   animate={{
                     width: isExpanded ? '24rem' : '4.75rem',
@@ -162,7 +257,7 @@ export default function AtelierGallery() {
 
                   {/* Collapsed Vertical Identifier Indicator */}
                   {!isExpanded && (
-                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-between py-4 bg-black/20 hover:bg-black/10 transition-colors pointer-events-none">
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-between py-4 bg-black/25 hover:bg-black/15 transition-colors pointer-events-none">
                       <span className="text-[10px] font-mono font-bold text-white/90 drop-shadow-sm">
                         {image.code}
                       </span>
